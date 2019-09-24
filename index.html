@@ -1,0 +1,427 @@
+<html>
+
+<head>
+	<title>Lab</title>
+	<meta charset="utf-8">
+	<!-- <script src="script.js"></script> -->
+	<style type="text/css">
+		p {
+			font-family: Sans-Serif;
+			font-size: 20px;
+			color: #444343;
+
+		}
+
+		input {
+			font-family: Sans-Serif;
+			font-size: 18px;
+			height: 30px;
+			width: 275px;
+			
+		}
+
+		div.ui-btn,
+		input[type="submit"] {
+			background: #0066A2;
+			color: white;
+			
+			height: 30px;
+			width: 100px;
+			font: bold 15px sans-serif;
+			border-style: outset;
+			border-color: #0066A2;
+			text-shadow: none;
+		}
+
+		table {
+			font-family: Sans-Serif;
+			font-size: 18px;
+
+			text-align: left;
+
+			background-color: #f1f1f1;
+			color: #656665;
+
+			border: 2px solid #0066A2;
+			border-collapse: collapse;
+			width: 50%;
+
+			margin-bottom: 2%;
+		}
+
+		th {
+			font-size: 20px;
+			width: 20%;
+			text-align: left;
+			padding: 10px 15px;
+			color: #0066A2;
+		}
+
+		td {
+			padding: 10px 15px;
+		}
+
+		tr:nth-child(odd) {
+			background: white;
+			width: 20%;
+		}
+
+		tr:nth-child(even) {
+			background: #f3f3f3;
+		}
+
+		tr:hover td {
+			text-decoration: underline;
+			background-color: #0066A2;
+			color: white;
+			text-decoration: underline;
+		}
+
+		caption {
+			color: white;
+			padding: 10px;
+			font-size: 20px;
+			text-align: center;
+			font-family: Sans-Serif;
+			font-weight: bold;
+
+			background-color: #0066A2;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div>
+		<p>Изделие</p>
+
+		<p><input type="number" id="productField" class="productField" placeholder="Введите кол-во изделий">
+			<input type="submit" value="Добавить" class="productSubmit"></p>
+		<table id="productTable" cellspacing="0" cellpadding="15" border>
+			<tr>
+				<th>Номер</th>
+				<th>Количество</th>
+			</tr>
+		</table>
+
+	</div>
+
+	<div>
+		<p>Материалы</p>
+		<p><input type="number" id="materialField" class="materialField" placeholder="Введите стоимость материала">
+			<input type="submit" value="Добавить" class="materialSubmit"></p>
+		<table id="materialTable" cellspacing="0" cellpadding="0" border>
+			<tr>
+				<th>Номер</th>
+				<th>Стоимость</th>
+			</tr>
+		</table>
+	</div>
+
+	<div>
+		<p>Сколько материалов требуется на изделие</p>
+		<table id="materialAddProductTable" cellspacing="0" cellpadding="0" border>
+			<tr>
+				<th>Продукты\Материалы</th>
+				<th id="cost">Траты</th>
+			</tr>
+			<tr id="sum">
+				<th>Сумма материалов</th>
+				<th>-</th>
+			</tr>
+		</table>
+		<input type="submit" value="Рассчитать" class="answer"></p>
+	</div>
+	<div id="answer"></div>
+
+
+	<script>
+		let numberOfProducts = 0;
+		let preNumberOfProducts = 0;
+		let numberOfMaterials = 0;
+		let preNumberOfMaterials = 0;
+
+		let volumeOfProduct = [];
+		let priceOfMaterials = [];
+
+		let productSubmit = document.querySelector('.productSubmit');
+		let productField = document.querySelector('.productField');
+
+		let materialSubmit = document.querySelector('.materialSubmit');
+		let answer = document.querySelector('.answer');
+		let materialField = document.querySelector('.materialField');
+
+		function addNewProduct() {
+			let userGuess = Number(productField.value); //что сейчас введено в текстовое поле
+			++numberOfProducts;
+			volumeOfProduct.push(Number(productField.value));
+			addNewElement(numberOfProducts, "Изделие", "productTable", volumeOfProduct[numberOfProducts - 1]);
+			productField.value = '';
+			productField.focus();
+			updateTable(numberOfMaterials, numberOfProducts);
+		}
+
+		function addNewMaterial() {
+			let userGuess = Number(productField.value);
+			++numberOfMaterials;
+			priceOfMaterials.push(Number(materialField.value));
+			addNewElement(numberOfMaterials, "Материал", "materialTable", priceOfMaterials[numberOfMaterials - 1]);
+			materialField.value = '';
+			materialField.focus();
+			updateTable(numberOfMaterials, numberOfProducts);
+		}
+
+		/*обновляет таблицу материалы/изделия
+		на пересечении создается пустая ячейка типа input для ввода данных (количество данного материала для данного изделия)*/
+		function updateTable(numberOfMaterials, numberOfProducts) {
+
+			document.getElementById("materialAddProductTable").deleteRow(-1);
+			for (let i = 0; i < document.getElementById("materialAddProductTable").rows.length; i++) {
+				document.getElementById("materialAddProductTable").rows[i].deleteCell(-1);
+			}
+			if (numberOfProducts > 0 && preNumberOfProducts !== numberOfProducts) { //прибавляем строку с изделием
+				preNumberOfProducts = numberOfProducts;
+				let T = document.getElementById("materialAddProductTable");
+				let ro = T.insertRow(-1);
+				let name;
+
+				for (let j = 0, J = T.rows[0].cells.length; j < J; j++) {
+					if (j == 0) {
+						name = 'Изделие ' + numberOfProducts;
+						let newDiv = document.createElement("div");
+						let newContent = document.createTextNode(name);
+						newDiv.appendChild(newContent);
+						let ce = ro.insertCell(-1);
+						ce.appendChild(newDiv);
+					}
+					else {
+						let inp = document.createElement('input');
+						inp.id = "n" + String(numberOfProducts) + String(j);
+						inp.type = "number";
+						console.log('Добавили изделие ' + numberOfProducts + j);
+						let ce = ro.insertCell(-1)
+						ce.appendChild(inp);
+					}
+				}
+			}
+			else if (numberOfMaterials > 0 && preNumberOfMaterials !== numberOfMaterials) {
+				preNumberOfMaterials = numberOfMaterials;
+				let T = document.getElementById("materialAddProductTable");
+
+				let name;
+				for (let j = 0, J = T.rows.length; j < J; j++) {
+					if (j == 0) {
+						name = 'Материал ' + numberOfMaterials;
+						let newDiv = document.createElement("div");
+						let newContent = document.createTextNode(name);
+						newDiv.appendChild(newContent);
+						let ce = T.rows[j].insertCell(-1)
+						ce.appendChild(newDiv);
+					}
+					else {
+						let inp = document.createElement('input');
+						inp.id = "n" + String(j) + String(numberOfMaterials);
+						inp.type = "number";
+						console.log('Добавили материал ' + String(j) + String(numberOfMaterials))
+						let ce = T.rows[j].insertCell(-1)
+						ce.appendChild(inp);
+						
+					}
+				}
+			}
+
+			updateRowSum();
+			updateColSum();
+		}
+		/*Рассчитываем сумму материалов*/
+		function countRowSum() {
+
+			let T = document.getElementById("materialAddProductTable");
+			document.getElementById("materialAddProductTable").deleteRow(-1);
+			let ro = T.insertRow(-1);
+			let name;
+
+
+			console.log('T.rows[0].cells.length = ' + T.rows[0].cells.length);
+			for (let j = 0, J = T.rows[0].cells.length; j < (J - 1); j++) {
+				if (j == 0) {
+					name = 'Сумма материалов ';
+					let newDiv = document.createElement("div");
+					let newContent = document.createTextNode(name);
+					newDiv.appendChild(newContent);
+					let ce = ro.insertCell(-1);
+					ce.appendChild(newDiv);
+					ce.id = "sum";
+				}
+				else {
+					rowSum = 0;
+
+					let newDiv = document.createElement("div");
+					console.log('T.rows.length = ' + T.rows.length);
+					for (var i = 1, I = T.rows.length; i < (I - 1); i++) {
+						cellId = "n" + i + j;
+						console.log("Log " + i + " " + j);
+						console.log(document.getElementById(cellId).value);
+						rowSum += Number(document.getElementById(cellId).value);
+					}
+
+					let newContent = document.createTextNode(rowSum);
+					newDiv.appendChild(newContent);
+					let ce = ro.insertCell(-1);
+					ce.appendChild(newDiv);
+				}
+			}
+			countColSum();
+			countAll();
+		}
+		/*Рассчитываем траты на одно изделие*/
+		function countColSum() {
+			let T = document.getElementById("materialAddProductTable");
+
+			for (let i = 0; i < document.getElementById("materialAddProductTable").rows.length - 1; i++) {
+				document.getElementById("materialAddProductTable").rows[i].deleteCell(-1);
+			}
+			let name;
+			console.log("T.rows.length = " + T.rows.length);
+			for (var j = 0, J = T.rows.length; j < J - 1; j++) {
+				if (j == 0) {
+					name = 'Траты';
+					let newDiv = document.createElement("div");
+					let newContent = document.createTextNode(name);
+					newDiv.appendChild(newContent);
+					var ce = T.rows[j].insertCell(-1)
+					ce.appendChild(newDiv);
+				}
+				else {
+					rowSum = 0;
+					name = '-';
+					let newDiv = document.createElement("div");
+					for (var i = 1, I = T.rows[0].cells.length; i < (I - 1); i++) {
+						let cellId = "n" + j + i;
+						console.log("Log " + j + " " + i);
+						console.log(document.getElementById(cellId).value);
+						rowSum += Number(document.getElementById(cellId).value) * Number(priceOfMaterials[i - 1]);
+					}
+					let newContent = document.createTextNode(rowSum);
+					newDiv.appendChild(newContent);
+					newDiv.id = "sum" + j;
+					console.log("newDiv.id = " + newDiv.id);
+					var ce = T.rows[j].insertCell(-1);
+					ce.appendChild(newDiv);
+				}
+			}
+
+
+		}
+		/*Рассчитываем все затраты на производство*/
+		function countAll() {
+			let T = document.getElementById("materialAddProductTable");
+			let sumAll = 0
+			for (var i = 1, I = T.rows.length; i < (I - 1); i++) {
+				console.log(document.getElementById("sum" + i).textContent);
+				sumAll += Number(document.getElementById("sum" + i).textContent) * volumeOfProduct[i - 1];
+			}
+			answer = '<p>Итоговые затраты = ' + sumAll + '</p>';
+			document.getElementById('answer').innerHTML = answer;
+
+		}
+		/*Обновляем строку, которая отвечает за сумму материалов*/
+		function updateRowSum() {
+			let T = document.getElementById("materialAddProductTable");
+			let ro = T.insertRow(-1);
+			let name;
+
+
+			for (let j = 0, J = T.rows[0].cells.length; j < J; j++) {
+				if (j == 0) {
+					name = 'Сумма материалов ';
+					let newDiv = document.createElement("div");
+					let newContent = document.createTextNode(name);
+					newDiv.appendChild(newContent);
+					let ce = ro.insertCell(-1);
+					ce.appendChild(newDiv);
+					ce.id = "sum";
+				}
+				else {
+					rowSum = 0;
+					name = '-';
+					let newDiv = document.createElement("div");
+					let newContent = document.createTextNode(name);
+					newDiv.appendChild(newContent);
+					let ce = ro.insertCell(-1);
+					ce.appendChild(newDiv);
+				}
+			}
+		}
+		/*Обновляем столбец, который отвечает за траты на каждое изделие*/
+		function updateColSum() {
+			let T = document.getElementById("materialAddProductTable");
+			let name;
+			for (var j = 0, J = T.rows.length; j < J; j++) {
+				if (j == 0) {
+					name = 'Траты';
+					let newDiv = document.createElement("div");
+					let newContent = document.createTextNode(name);
+					newDiv.appendChild(newContent);
+					var ce = T.rows[j].insertCell(-1)
+					ce.appendChild(newDiv);
+				}
+				else {
+					rowSum = 0;
+					name = '-';
+					let newDiv = document.createElement("div");
+					let newContent = document.createTextNode(name);
+					newDiv.appendChild(newContent);
+					var ce = T.rows[j].insertCell(-1);
+					ce.appendChild(newDiv);
+				}
+			}
+		}
+		/*Добавление нового элемента в таблицу материалы или изделия*/
+		function addNewElement(numberOfProducts, nameOfProducts, tableId, volume) {
+
+			var table = document.getElementById(tableId);
+
+			var newTr = document.createElement("tr");
+
+			var newTdNameOfProducts = document.createElement("td");
+			var newTdVolume = document.createElement("td");
+
+			newTdNameOfProducts.innerHTML = nameOfProducts + ' ' + numberOfProducts;
+			newTdVolume.innerHTML = volume;
+
+			newTr.appendChild(newTdNameOfProducts);
+			newTr.appendChild(newTdVolume);
+
+			table.appendChild(newTr);
+		}
+
+
+		/*
+				function addROW(numberOfProducts, nameOfProducts, tableId, volume) {
+					let T = document.getElementById(tableId);
+					let ro = T.insertRow(-1);
+					let name;
+					for (let j = 0, J = T.rows[0].cells.length; j < 2; j++) {
+						if (j == 0) {
+							name = nameOfProducts + ' ' + numberOfProducts;
+						}
+						else {
+							name = volume;
+						}
+						let newDiv = document.createElement("div");
+						let inp = document.createElement('input');
+						let newContent = document.createTextNode(name);
+						newDiv.appendChild(newContent);
+						inp.name = inp.value = name;
+						let ce = ro.insertCell(-1)
+						ce.appendChild(newDiv);
+					}
+				}*/
+		productSubmit.addEventListener('click', addNewProduct);
+		materialSubmit.addEventListener('click', addNewMaterial);
+		answer.addEventListener('click', countRowSum);
+	</script>
+</body>
+
+</html>
